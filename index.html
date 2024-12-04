@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <base href="." />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>Agenda Semanal</title>
+    <style>
+        .appointments-container {
+            position: relative;
+        }
+
+        .time-markers {
+            position: relative;
+        }
+
+        .bg-cps {
+            background-color: rgb(255, 105, 97);
+            color: white;
+        }
+
+        .bg-etec {
+            background-color: rgb(119, 221, 119);
+            color: white;
+        }
+
+        .bg-fatec {
+            background-color: rgb(132, 182, 244);
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 p-2">
+    <div class=" mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-3 mb-3">
+            <div class="flex justify-between items-center mb-3">
+                <h1 class="text-2xl font-bold">Agenda Semanal</h1>
+                <button onclick="openInstitutionModal()"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Configurar Instituições
+                </button>
+                <button onclick="openAppointmentModal()"
+                    class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Novo Compromisso
+                </button>
+            </div>
+            <div id="calendar" class="grid grid-cols-6 gap-2"></div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <div class="grid grid-cols-4 gap-4">
+                <div class="p-4 rounded bg-cps" id="cps-hours">
+                    <h3 class="font-bold mb-2">Horas CPS</h3>
+                    <div class="space-y-1 text-sm">
+                        <p>Base: <span class="base-hours">0h</span></p>
+                        <p>Acréscimo HA: <span class="bonus-hours">0h</span></p>
+                        <p>Total: <span class="text-xl total-hours">0h</span></p>
+                        <p>Valor: R$<span class="total-value">0,00</span></p>
+                    </div>
+                </div>
+                <div class="p-4 rounded bg-etec" id="etec-hours">
+                    <h3 class="font-bold mb-2">Horas ETEC</h3>
+                    <div class="space-y-1 text-sm">
+                        <p>Base: <span class="base-hours">0h</span></p>
+                        <p>Acréscimo HA: <span class="bonus-hours">0h</span></p>
+                        <p>Total: <span class="text-xl total-hours">0h</span></p>
+                        <p>Valor: R$<span class="total-value">0,00</span></p>
+                    </div>
+                </div>
+                <div class="p-4 rounded bg-fatec" id="fatec-hours">
+                    <h3 class="font-bold mb-2">Horas FATEC</h3>
+                    <div class="space-y-1 text-sm">
+                        <p>Base: <span class="base-hours">0h</span></p>
+                        <p>Acréscimo HA: <span class="bonus-hours">0h</span></p>
+                        <p>Total: <span class="text-xl total-hours">0h</span></p>
+                        <p>Valor: R$<span class="total-value">0,00</span></p>
+                    </div>
+                </div>
+                <div class="p-4 rounded bg-gray-100" id="total-hours">
+                    <h3 class="font-bold mb-2">Total Geral</h3>
+                    <div class="space-y-1">
+                        <p>Total Horas: <span class="text-xl total-hours">0h</span></p>
+                        <p>Valor Total: R$<span class="total-value">0,00</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Instituições -->
+    <div id="institutionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-[800px]">
+            <h2 class="text-xl font-bold mb-4">Configurar Instituições</h2>
+            <div id="institutions" class="grid grid-cols-3 gap-4">
+                <div class="mb-4">
+                    <h3 class="font-bold mb-4">CPS</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm mb-1">Cor</label>
+                            <input type="color" class="institution-color w-full" data-institution="CPS">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Período de Carência (minutos)</label>
+                            <input type="number" class="institution-grace w-full p-2 border rounded"
+                                placeholder="Minutos" data-institution="CPS">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Valor por Hora</label>
+                            <input type="number" class="institution-hour-rate w-full p-2 border rounded"
+                                placeholder="R$" data-institution="CPS" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-bold mb-4">ETEC</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm mb-1">Cor</label>
+                            <input type="color" class="institution-color w-full" data-institution="ETEC">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Período de Carência (minutos)</label>
+                            <input type="number" class="institution-grace w-full p-2 border rounded"
+                                placeholder="Minutos" data-institution="ETEC">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Valor por Hora</label>
+                            <input type="number" class="institution-hour-rate w-full p-2 border rounded"
+                                placeholder="R$" data-institution="ETEC" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-bold mb-4">FATEC</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm mb-1">Cor</label>
+                            <input type="color" class="institution-color w-full" data-institution="FATEC">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Período de Carência (minutos)</label>
+                            <input type="number" class="institution-grace w-full p-2 border rounded"
+                                placeholder="Minutos" data-institution="FATEC">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Valor por Hora</label>
+                            <input type="number" class="institution-hour-rate w-full p-2 border rounded"
+                                placeholder="R$" data-institution="FATEC" step="0.01">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button onclick="saveInstitutions()"
+                    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Salvar</button>
+                <button onclick="closeInstitutionModal()"
+                    class="ml-2 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Compromisso -->
+    <div id="appointmentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-[600px]">
+            <h2 class="text-xl font-bold mb-4">Novo Compromisso</h2>
+            <form id="appointmentForm">
+                <input type="hidden" id="editingId">
+                <div class="mb-4">
+                    <label class="block mb-2">Dia da Semana</label>
+                    <select id="dayOfWeek" class="w-full p-2 border rounded" required>
+                        <option value="1">Segunda</option>
+                        <option value="2">Terça</option>
+                        <option value="3">Quarta</option>
+                        <option value="4">Quinta</option>
+                        <option value="5">Sexta</option>
+                        <option value="6">Sábado</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Instituição</label>
+                    <select id="institution" class="w-full p-2 border rounded" required>
+                        <option value="CPS">CPS</option>
+                        <option value="ETEC">ETEC</option>
+                        <option value="FATEC">FATEC</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Tipo de Hora</label>
+                    <div class="flex gap-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="hourType" value="HAE" class="form-radio">
+                            <span class="ml-2">HAE</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="hourType" value="HA" class="form-radio" checked required>
+                            <span class="ml-2">H/A</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Horário de Entrada</label>
+                    <input type="time" id="startTime" class="w-full p-2 border rounded" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Horário de Saída</label>
+                    <input type="time" id="endTime" class="w-full p-2 border rounded" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Descrição</label>
+                    <textarea id="description" class="w-full p-2 border rounded" required></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Duração (horas)</label>
+                    <input type="number" id="duration" class="w-full p-2 border rounded" step="0.5" required>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit"
+                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Salvar</button>
+                    <button type="button" onclick="closeAppointmentModal()"
+                        class="ml-2 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let appointments = [];
+        let institutions = {
+            CPS: { color: '#ff6961', grace: 60, hourRate: 30.09 },
+            ETEC: { color: '#77dd77', grace: 60, hourRate: 30.09 },
+            FATEC: { color: '#84b6f4', grace: 60, hourRate: 36.18 }
+        };
+
+        function saveToLocalStorage() {
+            localStorage.setItem('weeklyAppointments', JSON.stringify(appointments));
+            localStorage.setItem('institutionsConfig', JSON.stringify(institutions));
+        }
+
+        function loadFromLocalStorage() {
+            const savedAppointments = localStorage.getItem('weeklyAppointments');
+            const savedInstitutions = localStorage.getItem('institutionsConfig');
+
+            if (savedAppointments) {
+                appointments = JSON.parse(savedAppointments);
+            }
+
+            if (savedInstitutions) {
+                institutions = JSON.parse(savedInstitutions);
+            }
+        }
+
+        function openInstitutionModal() {
+            document.getElementById('institutionModal').classList.remove('hidden');
+
+            // Load current institution settings
+            Object.keys(institutions).forEach(inst => {
+                const container = document.querySelector(`[data-institution="${inst}"]`).parentElement.parentElement;
+                container.querySelector('.institution-color').value = institutions[inst].color;
+                container.querySelector('.institution-grace').value = institutions[inst].grace;
+                container.querySelector('.institution-hour-rate').value = institutions[inst].hourRate;
+            });
+        }
+
+        function closeInstitutionModal() {
+            document.getElementById('institutionModal').classList.add('hidden');
+        }
+
+        function openAppointmentModal(appointmentId = null) {
+            document.getElementById('appointmentModal').classList.remove('hidden');
+            document.getElementById('appointmentForm').reset();
+            document.getElementById('editingId').value = '';
+
+            if (appointmentId) {
+                const appointment = appointments.find(a => a.id === appointmentId);
+                if (appointment) {
+                    document.getElementById('editingId').value = appointmentId;
+                    document.getElementById('dayOfWeek').value = appointment.day;
+                    document.getElementById('institution').value = appointment.institution;
+                    document.getElementById('startTime').value = appointment.startTime;
+                    document.getElementById('endTime').value = appointment.endTime;
+                    document.getElementById('description').value = appointment.description;
+                    document.querySelector(`input[name="hourType"][value="${appointment.hourType}"]`).checked = true;
+                    // calculateDuration();
+                    document.getElementById('duration').value = parseFloat(appointment.duration);
+                }
+            }
+        }
+
+        function closeAppointmentModal() {
+            document.getElementById('appointmentModal').classList.add('hidden');
+        }
+
+        function saveInstitutions() {
+            const elements = document.querySelectorAll('[data-institution]');
+            elements.forEach(element => {
+                const inst = element.dataset.institution;
+                if (element.classList.contains('institution-color')) {
+                    institutions[inst].color = element.value;
+                } else if (element.classList.contains('institution-grace')) {
+                    institutions[inst].grace = parseInt(element.value);
+                } else if (element.classList.contains('institution-hour-rate')) {
+                    institutions[inst].hourRate = parseFloat(element.value);
+                }
+            });
+
+            closeInstitutionModal();
+            saveToLocalStorage();
+            renderAppointments();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso',
+                text: 'Configurações salvas com sucesso!'
+            });
+        }
+
+        function deleteAppointment(id) {
+            Swal.fire({
+                title: 'Tem certeza?',
+                text: "Esta ação não poderá ser revertida!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sim, deletar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    appointments = appointments.filter(a => a.id !== id);
+                    saveToLocalStorage();
+                    renderAppointments();
+                    Swal.fire(
+                        'Deletado!',
+                        'O compromisso foi removido com sucesso.',
+                        'success'
+                    );
+                }
+            });
+        }
+
+        function initializeCalendar() {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+
+            const days = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+            // Add day columns without the time column
+            days.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'border p-2 relative'; // Reduced padding from p-4 to p-2
+                dayElement.innerHTML = `
+                    <h3 class="font-bold mb-2">${day}</h3>
+                    <div id="day-${days.indexOf(day) + 1}" class="appointments-container relative" style="height: 960px;">
+                        ${generateTimeMarkers()}
+                    </div>
+                `;
+                calendar.appendChild(dayElement);
+            });
+
+            // Update grid columns to 6 columns (removed time column) and reduce gap
+            calendar.className = 'grid grid-cols-6 gap-2'; // Changed from grid-cols-7 gap-4
+
+            renderAppointments();
+        }
+
+        function generateTimeMarkers() {
+            let markers = '';
+            for (let hour = 7; hour <= 23; hour++) {
+                markers += `
+                    <div class="absolute w-full border-t border-gray-300" style="top: ${(hour - 7) * 60}px;">
+                        <span class="absolute -mt-3 -ml-2 text-xs text-gray-500">${hour}h</span>
+                    </div>
+                `;
+                if (hour < 23) {
+                    markers += `
+                        <div class="absolute w-full border-t border-gray-300 border-dashed" style="top: ${(hour - 7) * 60 + 30}px;">
+                        </div>
+                    `;
+                }
+            }
+            return markers;
+        }
+
+        function renderAppointments() {
+            for (let i = 1; i <= 6; i++) {
+                const dayContainer = document.getElementById(`day-${i}`);
+                dayContainer.innerHTML = generateTimeMarkers();
+
+                const dayAppointments = appointments
+                    .filter(a => a.day === i)
+                    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+                dayAppointments.forEach(appointment => {
+                    const startMinutes = timeToMinutes(appointment.startTime);
+                    const endMinutes = timeToMinutes(appointment.endTime);
+                    const duration = endMinutes - startMinutes;
+
+                    const topPosition = ((startMinutes - (7 * 60)) / 60) * 60;
+                    const height = (duration / 60) * 60;
+
+                    const appointmentElement = document.createElement('div');
+                    appointmentElement.className = 'absolute w-[95%] rounded text-white p-2 cursor-pointer transition-all hover:shadow-lg'; // Increased width from 90% to 95%
+                    appointmentElement.style.backgroundColor = institutions[appointment.institution].color;
+                    appointmentElement.style.top = `${topPosition}px`;
+                    appointmentElement.style.height = `${height}px`;
+                    appointmentElement.style.marginLeft = "15px";
+                    appointmentElement.style.border = "0.5px solid #fff";
+                    appointmentElement.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <strong>${appointment.institution} (${appointment.hourType})</strong>
+                            <div>
+                                <button onclick="openAppointmentModal('${appointment.id}')" class="text-xs bg-yellow-200 text-gray-800 px-2 py-1 rounded">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteAppointment('${appointment.id}')" class="text-xs bg-red-500 text-white px-2 py-1 rounded ml-1">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>${appointment.startTime} - ${appointment.endTime}</div>
+                        <div class="text-sm">${appointment.description}</div>
+                    `;
+                    dayContainer.appendChild(appointmentElement);
+                });
+            }
+            calculateAndDisplayTotals();
+        }
+
+        function timeToMinutes(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function calculateDuration() {
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+
+            if (startTime && endTime) {
+                const start = timeToMinutes(startTime);
+                const end = timeToMinutes(endTime);
+                const duration = (end - start) / 60;
+
+                // Round up to nearest 0.5
+                const roundedDuration = Math.ceil(duration * 2) / 2;
+
+                document.getElementById('duration').value = roundedDuration.toFixed(1);
+            }
+        }
+
+        function saveAppointment(e) {
+            e.preventDefault();
+
+            const editingId = document.getElementById('editingId').value;
+            const dayOfWeek = parseInt(document.getElementById('dayOfWeek').value);
+            const institution = document.getElementById('institution').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const description = document.getElementById('description').value;
+            const hourType = document.querySelector('input[name="hourType"]:checked').value;
+            const duration = parseFloat(document.getElementById('duration').value);
+
+            // Validate total hours per day per institution
+            const start = timeToMinutes(startTime);
+            const end = timeToMinutes(endTime);
+            //const duration = (end - start) / 60;
+
+            // Check existing appointments for this day and institution
+            const existingAppointments = appointments.filter(a =>
+                a.day === dayOfWeek &&
+                a.institution === institution &&
+                (!editingId || a.id !== editingId)
+            );
+
+            const totalHoursForDay = existingAppointments.reduce((total, appointment) => {
+                const startMin = timeToMinutes(appointment.startTime);
+                const endMin = timeToMinutes(appointment.endTime);
+                // return total + ((endMin - startMin) / 60);
+                return total + parseFloat(appointment.duration);
+            }, 0);
+
+            console.log(totalHoursForDay + duration);
+
+            if (totalHoursForDay + duration > 8) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'O total de horas por dia para cada instituição não pode exceder 8 horas!'
+                });
+                return;
+            }
+
+            // Validate overlapping appointments
+            const hasOverlap = appointments.some(appointment => {
+                if (editingId && appointment.id === editingId) return false;
+                if (appointment.day !== dayOfWeek) return false;
+
+                const existingStart = timeToMinutes(appointment.startTime);
+                const existingEnd = timeToMinutes(appointment.endTime);
+
+                return (start < existingEnd && end > existingStart);
+            });
+
+            if (hasOverlap) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Já existe um compromisso neste horário!'
+                });
+                return;
+            }
+
+            // Validate grace period between appointments
+            const graceMinutes = institutions[institution].grace;
+
+            const hasGraceViolation = appointments.some(appointment => {
+                if (editingId && appointment.id === editingId) return false;
+                if (appointment.day !== dayOfWeek) return false;
+                if (appointment.institution === institution) return false;
+
+                const existingStart = timeToMinutes(appointment.startTime);
+                const existingEnd = timeToMinutes(appointment.endTime);
+
+                const graceBefore = start - existingEnd;
+                const graceAfter = existingStart - end;
+
+                return Math.abs(graceBefore) < graceMinutes && Math.abs(graceAfter) < graceMinutes;
+            });
+
+            if (hasGraceViolation) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: `É necessário respeitar o período de carência de ${graceMinutes} minutos entre instituições diferentes!`
+                });
+                return;
+            }
+
+            // Validate 11-hour rest period between days
+            const hasRestViolation = appointments.some(appointment => {
+                if (editingId && appointment.id === editingId) return false;
+
+                const prevDay = dayOfWeek - 1;
+                const nextDay = dayOfWeek + 1;
+
+                if (appointment.day !== prevDay && appointment.day !== nextDay) return false;
+
+                const existingStart = timeToMinutes(appointment.startTime);
+                const existingEnd = timeToMinutes(appointment.endTime);
+
+                if (appointment.day === prevDay) {
+                    const restPeriod = start + (24 * 60) - existingEnd;
+                    return restPeriod < 11 * 60;
+                } else {
+                    const restPeriod = existingStart + (24 * 60) - end;
+                    return restPeriod < 11 * 60;
+                }
+            });
+
+            if (hasRestViolation) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'É necessário respeitar o período de descanso de 11 horas entre dias!'
+                });
+                return;
+            }
+
+            const appointment = {
+                id: editingId || Date.now().toString(),
+                day: dayOfWeek,
+                institution,
+                startTime,
+                endTime,
+                description,
+                hourType,
+                duration
+            };
+
+            if (editingId) {
+                const index = appointments.findIndex(a => a.id === editingId);
+                appointments[index] = appointment;
+            } else {
+                appointments.push(appointment);
+            }
+
+            closeAppointmentModal();
+            renderAppointments();
+            saveToLocalStorage(); // Add this line
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso',
+                text: 'Compromisso salvo com sucesso!'
+            });
+        }
+
+        function calculateAndDisplayTotals() {
+            const institutionsList = ['CPS', 'ETEC', 'FATEC'];
+            let grandTotal = 0;
+            let grandTotalValue = 0;
+
+            institutionsList.forEach(inst => {
+                const instAppointments = appointments.filter(a => a.institution === inst);
+                let baseHours = 0;
+                let bonusHours = 0;
+
+                instAppointments.forEach(appointment => {
+                    const start = timeToMinutes(appointment.startTime);
+                    const end = timeToMinutes(appointment.endTime);
+                    // const hours = Math.ceil((end - start) / 60 * 2) / 2; // Round up to nearest 0.5
+                    const hours = parseFloat(appointment.duration);
+
+                    if (appointment.hourType === 'HA') {
+                        baseHours += hours;
+                        if (inst === 'ETEC') {
+                            bonusHours += hours * 0.3; // 30% adicional
+                        } else if (inst === 'FATEC') {
+                            bonusHours += hours * 0.5; // 50% adicional
+                        }
+                    } else {
+                        baseHours += hours;
+                    }
+                });
+
+                const totalHours = baseHours + bonusHours;
+                const totalValue = totalHours * institutions[inst].hourRate;
+
+                const container = document.getElementById(`${inst.toLowerCase()}-hours`);
+                if (container) {
+                    container.querySelector('.base-hours').textContent = `${baseHours.toFixed(1)}h`;
+                    container.querySelector('.bonus-hours').textContent = `${bonusHours.toFixed(1)}h`;
+                    container.querySelector('.total-hours').textContent = `${totalHours.toFixed(1)}h`;
+                    container.querySelector('.total-value').textContent = totalValue.toFixed(2);
+                }
+
+                grandTotal += totalHours;
+                grandTotalValue += totalValue;
+            });
+
+            const totalContainer = document.getElementById('total-hours');
+            if (totalContainer) {
+                totalContainer.querySelector('.total-hours').textContent = `${grandTotal.toFixed(1)}h`;
+                totalContainer.querySelector('.total-value').textContent = grandTotalValue.toFixed(2);
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('appointmentForm').addEventListener('submit', saveAppointment);
+        document.getElementById('startTime').addEventListener('change', calculateDuration);
+        document.getElementById('endTime').addEventListener('change', calculateDuration);
+
+        // Inicialização
+        loadFromLocalStorage();
+        initializeCalendar();
+    </script>
+</body>
+
+</html>
